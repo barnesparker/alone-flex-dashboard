@@ -1,0 +1,102 @@
+---
+title: "Alone"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(leaflet)
+library(shinyWidgets)
+library(crosstalk)
+library(reactable)
+library(htmltools)
+
+survivalists <- alone::survivalists
+seasons <- alone::seasons
+episodes <- alone::episodes
+loadouts <- alone::loadouts
+
+alone <- 
+  survivalists |> 
+    mutate(name, image_url, season, days_lasted, reason_tapped_out, Profession = profession, Age = age, 
+           Hometown = str_glue("{city}, {state}, {country}"), .keep = "none") |> 
+    left_join(
+      seasons |> select(season, lat, lng = lon, location, country)
+    )
+
+sd <- 
+  SharedData$new(
+    alone
+  )
+```
+
+Column {data-width=600}
+-----------------------------------------------------------------------
+
+### Survivalists
+
+```{r table}
+filter_select(
+  id = "season",
+  label = "Season",
+  sharedData = sd,
+  group = ~season,
+  multiple = T
+    
+)
+
+reactable(
+  sd,
+  columns = list(
+    name = colDef(name = "Name", show = T),
+    image_url = colDef(
+      name = "Profile (click to see more)",
+      show = T,
+      cell = function(img_url, i) {
+        url <- survivalists |> slice(i) |> pull(url)
+        image <- tags$a(href = str_glue("https://www.history.com/shows/alone/cast/{url}"), 
+        img(src = str_glue("https://cropper.watch.aetnd.com/cdn.watch.aetnd.com/sites/2/{img_url}"), height = "50px"))
+        tagList(
+          div(style = "display: inline-block; width: 65px;", image)
+        )
+    }),
+    reason_tapped_out = colDef(name = "Reason Tapped Out"),
+    season = colDef(name = "Season", show = T),
+    days_lasted = colDef(name = "Days Lasted", show = T),
+    location = colDef(show = F),
+    country = colDef(show = F),
+    lat = colDef(show = F),
+    lng = colDef(show = F)
+  ),
+  details = function(index) {
+    item_data <- loadouts[loadouts$name == alone$name[index],] |> select(Items = item_detailed)
+    htmltools::div(style = "padding: 1rem",
+      reactable(item_data, outlined = T))
+  },
+  style = "overflow: scroll",
+  pagination = F
+)
+```
+
+
+
+
+
+Column {data-width=400}
+-----------------------------------------------------------------------
+
+### Map
+
+```{r}
+sd |> 
+  leaflet() |> 
+  addTiles() |> 
+  addMarkers(
+    popup = ~str_glue("{location}, {country} (Season {season})")
+  )
+```
+

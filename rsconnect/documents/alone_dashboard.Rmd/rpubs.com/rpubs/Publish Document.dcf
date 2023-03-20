@@ -1,0 +1,11 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/1016960/a1345c77894b41798fbb4cf88d6544d4
+bundleId: https://api.rpubs.com/api/v1/document/1016960/a1345c77894b41798fbb4cf88d6544d4
+url: http://rpubs.com/barnesparker/1016960
+when: 1679156273.96877
+lastSyncTime: 1679156273.9688

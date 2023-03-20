@@ -1,0 +1,13 @@
+name: alone_dashboard
+title: alone_dashboard
+username:
+account: barnesparker
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8601158
+bundleId: 6973797
+url: https://barnesparker.shinyapps.io/alone_dashboard/
+when: 1679096896.41638
+lastSyncTime: 1679096896.4164
+asMultiple: FALSE
+asStatic: FALSE
