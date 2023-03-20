@@ -7,32 +7,33 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-library(flexdashboard)
-library(tidyverse)
-library(leaflet)
-library(shinyWidgets)
-library(crosstalk)
-library(reactable)
-library(htmltools)
+box::use(
+  dplyr[mutate, left_join, select, slice, pull],
+  reactable[reactable, colDef],
+  crosstalk[SharedData, filter_select],
+  leaflet[leaflet, addTiles, addMarkers],
+  stringr[str_glue],
+  htmltools[div, tags, img, tagList]
+)
+```
 
+```{r}
 survivalists <- alone::survivalists
 seasons <- alone::seasons
-episodes <- alone::episodes
 loadouts <- alone::loadouts
 
-alone <- 
+dashboard_data <- 
   survivalists |> 
-    mutate(name, image_url, season, days_lasted, reason_tapped_out, Profession = profession, Age = age, 
-           Hometown = str_glue("{city}, {state}, {country}"), .keep = "none") |> 
-    left_join(
-      seasons |> select(season, lat, lng = lon, location, country)
-    )
+    mutate(
+      name, image_url, season, days_lasted, reason_tapped_out, Profession = profession, 
+      Age = age, Hometown = str_glue("{city}, {state}, {country}"), 
+      .keep = "none"
+    ) |> 
+    left_join(seasons |> select(season, lat, lng = lon, location, country))
 
-sd <- 
-  SharedData$new(
-    alone
-  )
+sd <- SharedData$new(dashboard_data)
 ```
+
 
 Column {data-width=600}
 -----------------------------------------------------------------------
@@ -58,7 +59,7 @@ reactable(
       show = T,
       cell = function(img_url, i) {
         url <- survivalists |> slice(i) |> pull(url)
-        image <- tags$a(href = str_glue("https://www.history.com/shows/alone/cast/{url}"), 
+        image <- tags$a(href = stringr::str_glue("https://www.history.com/shows/alone/cast/{url}"), 
         img(src = str_glue("https://cropper.watch.aetnd.com/cdn.watch.aetnd.com/sites/2/{img_url}"), height = "50px"))
         tagList(
           div(style = "display: inline-block; width: 65px;", image)
@@ -73,18 +74,14 @@ reactable(
     lng = colDef(show = F)
   ),
   details = function(index) {
-    item_data <- loadouts[loadouts$name == alone$name[index],] |> select(Items = item_detailed)
-    htmltools::div(style = "padding: 1rem",
+    item_data <- loadouts[loadouts$name == dashboard_data$name[index],] |> select(Items = item_detailed)
+    div(style = "padding: 1rem",
       reactable(item_data, outlined = T))
   },
   style = "overflow: scroll",
   pagination = F
 )
 ```
-
-
-
-
 
 Column {data-width=400}
 -----------------------------------------------------------------------
